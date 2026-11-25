@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
+<title>Открыть в Obsidian</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font: 18px/1.5 system-ui, sans-serif; max-width: 32rem; margin: 20vh auto; padding: 0 16px; text-align: center; }
+  a { display: inline-block; padding: .8em 1.6em; border-radius: .6em; background: #7c3aed; color: #fff; text-decoration: none; font-weight: 600; }
+  #err { color: #dc2626; }
+  [hidden] { display: none; }
+</style>
+</head>
+<body>
+<p id="name"></p>
+<a id="open" href="#" hidden>Открыть в Obsidian</a>
+<p id="err" hidden>В ссылке нет пути к заметке. Формат: <code>#file=Inbox%2Fexample.md</code></p>
+<script>
+  const p = new URLSearchParams(location.hash.slice(1));
+  const file = p.get("file"), vault = p.get("vault");
+  if (!file) {
+    document.getElementById("err").hidden = false;
+  } else {
+    // Only obsidian://open with whitelisted params — nothing from the fragment is used as a URL.
+    let url = "obsidian://open?file=" + encodeURIComponent(file);
+    if (vault) url += "&vault=" + encodeURIComponent(vault);
+    const a = document.getElementById("open");
+    a.href = url;
+    a.hidden = false;
+    document.getElementById("name").textContent = file.split("/").pop();
+    location.href = url;
+  }
+</script>
+</body>
+</html>
