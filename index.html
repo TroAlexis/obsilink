@@ -5,19 +5,67 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <meta name="robots" content="noindex">
+<meta name="theme-color" content="#0f0a1e">
 <title>Открыть в Obsidian</title>
 <style>
-  :root { color-scheme: light dark; }
-  body { font: 18px/1.5 system-ui, sans-serif; max-width: 32rem; margin: 20vh auto; padding: 0 16px; text-align: center; }
-  a { display: inline-block; padding: .8em 1.6em; border-radius: .6em; background: #7c3aed; color: #fff; text-decoration: none; font-weight: 600; }
-  #err { color: #dc2626; }
-  [hidden] { display: none; }
+  :root {
+    --bg: #0f0a1e; --card: rgb(255 255 255 / .06); --border: rgb(255 255 255 / .12);
+    --text: #ede9fe; --muted: #a5a0c0; --accent: #8b5cf6; --accent2: #6366f1; --err: #f87171;
+  }
+  @media (prefers-color-scheme: light) {
+    :root { --bg: #f5f3ff; --card: rgb(255 255 255 / .65); --border: rgb(124 58 237 / .15);
+            --text: #1e1433; --muted: #6b6290; --err: #dc2626; }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font: 17px/1.5 system-ui, -apple-system, sans-serif; color: var(--text); background: var(--bg);
+    display: grid; place-items: center; padding: 16px; overflow: hidden;
+  }
+  /* Drifting blurred blobs */
+  body::before, body::after {
+    content: ""; position: fixed; width: 70vmax; height: 70vmax; border-radius: 50%;
+    filter: blur(80px); opacity: .45; z-index: -1; animation: drift 18s ease-in-out infinite alternate;
+  }
+  body::before { background: radial-gradient(circle, var(--accent), transparent 65%); top: -30vmax; left: -20vmax; }
+  body::after  { background: radial-gradient(circle, var(--accent2), transparent 65%); bottom: -35vmax; right: -25vmax; animation-delay: -9s; }
+  @keyframes drift { to { transform: translate(12vmax, 8vmax) scale(1.15); } }
+  @media (prefers-reduced-motion: reduce) { body::before, body::after { animation: none; } }
+
+  .card {
+    width: min(100%, 26rem); padding: 2.2rem 1.6rem; text-align: center; border-radius: 1.5rem;
+    background: var(--card); border: 1px solid var(--border);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 20px 60px rgb(0 0 0 / .25);
+  }
+  .gem { width: 56px; height: 56px; margin-bottom: 1rem; filter: drop-shadow(0 6px 18px rgb(139 92 246 / .6)); }
+  #name { margin: 0 0 .3rem; font-size: 1.2rem; font-weight: 650; overflow-wrap: anywhere; }
+  #path { margin: 0 0 1.6rem; color: var(--muted); font-size: .9rem; overflow-wrap: anywhere; }
+  a.btn {
+    display: inline-block; padding: .85em 1.8em; border-radius: 999px; color: #fff; text-decoration: none; font-weight: 600;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    box-shadow: 0 8px 24px rgb(139 92 246 / .45); transition: transform .15s, box-shadow .15s;
+  }
+  a.btn:hover, a.btn:focus-visible { transform: translateY(-2px); box-shadow: 0 12px 30px rgb(139 92 246 / .6); }
+  a.btn:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+  #err { color: var(--err); margin: 0; }
+  code { font-size: .85em; }
+  [hidden] { display: none !important; }
 </style>
 </head>
 <body>
-<p id="name"></p>
-<a id="open" href="#" hidden>Открыть в Obsidian</a>
-<p id="err" hidden>В ссылке нет пути к заметке. Формат: <code>#file=Inbox%2Fexample.md</code></p>
+<main class="card">
+  <svg class="gem" viewBox="0 0 64 64" aria-hidden="true">
+    <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c4b5fd"/><stop offset="1" stop-color="#6d28d9"/></linearGradient></defs>
+    <path d="M32 3 54 20 46 58H18L10 20Z" fill="url(#g)"/>
+    <path d="M32 3 40 26 32 58 24 26Z" fill="#fff" opacity=".25"/>
+    <path d="M10 20 24 26 18 58ZM54 20 40 26 46 58Z" fill="#000" opacity=".15"/>
+  </svg>
+  <p id="name"></p>
+  <p id="path"></p>
+  <a id="open" class="btn" href="#" hidden>Открыть в Obsidian</a>
+  <p id="err" hidden>В ссылке нет пути к заметке.<br>Формат: <code>#file=Inbox%2Fexample.md</code></p>
+</main>
 <script>
   const p = new URLSearchParams(location.hash.slice(1));
   const file = p.get("file"), vault = p.get("vault");
@@ -30,7 +78,9 @@
     const a = document.getElementById("open");
     a.href = url;
     a.hidden = false;
-    document.getElementById("name").textContent = file.split("/").pop();
+    const parts = file.split("/");
+    document.getElementById("name").textContent = parts.pop().replace(/\.md$/, "");
+    document.getElementById("path").textContent = [vault, ...parts].filter(Boolean).join(" / ");
     location.href = url;
   }
 </script>
